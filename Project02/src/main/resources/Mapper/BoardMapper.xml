@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="authorize.jaeho.yoon.board.dao.BoardMapper">
+	<select id="getManager" parameterType = "string" resultType ="string">
+		select
+				manager_id
+		from
+				p2_employees
+		where
+				employee_id = #{employee_id}
+	
+	</select>
+
+
+	<select id="selectPage" parameterType = "map" resultType="board">
+		select
+				signState_ID
+				,(select department_name from p2_departments a where a.department_ID = b.department_ID)department_name
+				,(select employee_name from p2_employees a where a.employee_ID = b.employee_ID)employee_name
+				,draftDate
+				,employee_ID
+				,manager_ID
+				,doc_Name
+				,doc_ID
+				,doc_content
+				,isPersonal
+		from
+			p2_docDepartment b
+		where
+			isPersonal = #{isPersonal}
+			and
+			signState_ID=#{signState_ID}
+			<if test="isPersonal == '개인'">
+			and
+			employee_id = #{person}
+			</if>
+			<if test="searchText != null">
+				and
+				${searchSelect} like '%'||#{searchText}||'%'
+			</if>
+			order by
+	 			draftDate desc
+	</select>
+	
+	<!-- 전부다 -->
+	<select id="selectAll" parameterType = "map" resultType="board">
+		select
+				signState_ID
+				,(select department_name from p2_departments a where a.department_ID = b.department_ID)department_name
+				,(select employee_name from p2_employees a where a.employee_ID = b.employee_ID)employee_name
+				,draftDate
+				,employee_ID
+				,manager_ID
+				,doc_Name
+				,doc_ID
+				,doc_content
+				,isPersonal
+		from
+			p2_docDepartment b
+		where
+			manager_id = #{employee_id}
+			<if test="searchText != null">
+				and
+				${searchSelect} like '%'||#{searchText}||'%'
+			</if>
+			order by
+	 			draftDate desc
+	</select>
+	
+	
+	<!-- 총 글자 페이지 수 구하기 -->
+	<select id="getTotal" parameterType= "map" resultType = "int">
+ 		select
+ 				count(*)
+ 		from
+ 				p2_docDepartment
+ 		where
+			isPersonal = #{isPersonal}
+			and
+			signState_ID=#{signState_ID}
+			<if test="searchText != null">
+				and
+				${searchSelect} like '%'||#{searchText}||'%'
+			</if>
+	 </select>
+	 
+	 
+	 <select id="getTotal2" parameterType= "map" resultType = "int">
+ 		select
+ 				count(*)
+ 		from
+ 				p2_docDepartment
+	 </select>
+	 
+	 <!-- Doc 하나 선택 -->
+	 <select id ="selectOne" parameterType ="int" resultType ="board">
+	 	select
+	 			signState_ID
+	 			,(select signState from p2_signState a where a.signState_ID = b.signState_ID)signState
+                ,(select department_name from p2_departments a where a.department_ID = b.department_ID)department_name
+				,draftDate
+                ,(select employee_name from p2_employees a where a.employee_ID = b.employee_ID)employee_name
+                ,employee_ID
+                ,manager_ID
+                ,doc_Name
+                ,doc_ID
+                ,doc_content
+                ,isPersonal
+         
+	 	from
+	 			p2_docDepartment b
+	 	where
+	 			doc_id = #{doc_id}
+	 </select>
+	 <!-- Doc 삭제 -->
+	 <delete id="delete">
+	 	delete
+	 	from
+	 			p2_docDepartment
+	 	where
+	 			doc_id = #{doc_id}
+	 </delete>
+	 
+	 <!-- 부서목록 불러오기 -->
+	 <select id="readDepart" resultType = "board">
+	 	select
+	 			*
+	 	from 
+	 		p2_departments
+	 </select>
+	 <!-- 양식목록 -->
+	 <select id="readContent" resultType = "string">
+		select
+				*
+		from
+			p2_content	 
+	 </select>
+	 <!-- Doc 업데이트 -->
+	 <update id="update" parameterType = "board">
+	 	update
+	 			p2_docDepartment
+	 		set
+	 			department_id = #{department_id},
+				doc_name = #{doc_name},
+				doc_content = #{doc_content}
+		where
+				doc_id = #{doc_id}	
+	 </update>
+	 <!-- Doc 저장 -->
+	 <insert id="write" parameterType = "board">
+	 	insert into
+				p2_docDepartment
+				(
+					department_id
+	 				,employee_id
+	 				,manager_id
+	 				,doc_name
+	 				,doc_id
+	 				,doc_content
+	 				,isPersonal
+				)values(
+					#{department_id},
+	 				#{employee_id},
+	 				(select manager_id from p2_employees where employee_id = #{employee_id}),
+	 				#{doc_name},
+	 				p2_docDpartment_seq.nextval,
+	 				#{doc_content},
+	 				#{isPersonal}
+				)
+	 </insert>
+	 <!-- 승인 -->
+	 <update id="sign" parameterType = "map">
+	 	update
+	 			p2_docDepartment
+	 		set
+	 			manager_id = #{manager_id},
+	 			f_sign = case when f_sign is null then #{board.employee_id} else f_sign end,
+	 			signState_id = case when f_sign is null then 'o' when #{manager_id} ='없음' then 'c' else signState_id end,
+	 			s_sign = case when f_sign is not null then #{board.employee_id} else s_sign end,
+	 			t_sign = case when s_sign is not null then #{board.employee_id} else t_sign end
+		where
+				doc_id = #{board.doc_id}	
+	 </update>
+	 
+	 <!-- 반려 -->
+	 <update id="reject" parameterType ="int">
+	 	update
+	 			p2_docDepartment
+	 		set
+	 			signState_id = 'r'
+		where
+				doc_id = #{doc_id}	
+	 </update>
+</mapper>

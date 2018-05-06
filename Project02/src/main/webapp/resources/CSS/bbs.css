@@ -1,0 +1,67 @@
+@charset "UTF-8";
+
+body{
+	width:90%;
+	height:auto;
+	background-size:contain;
+	margin : 0 auto;
+}
+
+table{
+	width:625px;
+	margin:0 auto;
+	text-align:center;
+	
+}
+th{
+	text-overflow:clip;
+	overflow:hidden;
+	white-space:nowrap;
+	word-break: break-all;
+	background-color:black;
+	color:white;
+	border-collapse: collapse;	
+}
+td{
+	text-overflow:clip;
+	overflow:hidden;
+	white-space:nowrap;
+	word-break: break-all;
+	border-collapse: collapse;	
+}
+
+a{
+	text-decoration: none;
+	color: black;
+}
+
+#side{
+	width: 210px;
+	height: 800px;
+	border-style: solid;
+	float:left; 
+	margin-right:20px;
+}
+
+#center{
+	width: 840px;
+	height: 800px;
+	border-style: solid;
+	float:left; 
+}
+
+#num{
+	width: 35px;
+}
+#title{
+	width:300px;
+}
+#writer{
+	width:100px;
+}
+#hits{
+	width: 40px;
+}
+#date{
+	width:150px;
+}
